@@ -8,13 +8,16 @@ var Node = {
   util: require('util')
 };
 
-function Attempt(instance, end) {
+function Attempt(instance, command_options, end) {
   var platform = Node.process.platform;
   if (platform === 'win32') return Windows(instance, end);
   // The -n (non-interactive) option prevents sudo from prompting the user for
   // a password. If a password is required, sudo will return an error and exit.
   var command = [];
   command.push('/usr/bin/sudo');
+  if(command_options.session){
+    command.push('-s')
+  }
   command.push('-n');
   // Preserve user environment:
   command.push('-E');
@@ -35,7 +38,7 @@ function Attempt(instance, end) {
       } else {
         end(error, stdout, stderr);
       }
-    }
+    }, command_options
   );
 }
 
@@ -107,7 +110,8 @@ function Exec() {
     uuid: undefined,
     path: undefined
   };
-  Attempt(instance, end);
+  let v = options.command ? options.command : {}
+  Attempt(instance, v, end);
 }
 
 function Linux(instance, end) {
